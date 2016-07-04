@@ -19,69 +19,94 @@ module.exports = class CrawlerBot {
 		for(let i=1; i<config.length; i++){
 			this.config = merge(this.config, config[i]);
 		}
+		this.findEnding(this.config.steps);
 	}
 
-	handle(og, k, fcDone, fcError){	
+	findEnding(k){
+		if(!k.end && k.then) this.findEnding(k.then);
+		else if(k.end) this.end = k.end;
+	}
+
+	handle(og, k, fcDone, fcError){			
 		let self = this;
-		self.handleContent(og, k, (k) =>{
-			let g;			
-			let data = [];
-			if(k.pattern){			
-				let m;
-				let then = [];
-				let pattern = k.pattern;
-				while(g = pattern.exec(k.realContent)){				
-					m = true;
-					if(k.each) g = k.each(g, og);
-					data = data.concat(g);					
-					if(k.then) {
-						then.push(function(content, then, callback){							
-							self.handle(content, then, (vl)=>{
-								let sleep = self.config.sleep();
-								setTimeout(() => {
-									callback(null, vl);
-								}, sleep);
-							}, (err) => {
-								console.error('Not match', err.pattern, err.temp);
-							});
-						}.bind(null, g, k.then));
-					}else if(k.end) self.end = k.end;
-				}
-				if(!m) {
-					if(!self.config.skipError){
-						let e = fcError(k);
-						if(e) return;
-					}
-				}
-				if(k.all) k.all(data);
-				if(then.length > 0){					
-					async.series(then, (err, rs) => {
-						if(err) return console.error(err);
-						let result = new Set();
-						for(var k in rs){
-							if(rs[k] instanceof Array){
-								for(let j in rs[k]){
-									result.add(rs[k][j]);
-								}								
-							}else{
-								result.add(rs[k]);
-							}
+		let handler = () => {
+			self.handleContent(og, k, (k) =>{
+				let data = [];
+				if(k.pattern){			
+					let m;
+					let then = [];
+					let g;
+					while(g = k.pattern.exec(k.realContent)){				
+						m = true;
+						try{
+							if(k.each) g = k.each(g, og);
+							if(g === undefined) continue;
+						}catch(e){
+							self.status = 'STOP';
+							break;
 						}
-						if(fcDone) fcDone(Array.from(result));
-					});			
+						data = data.concat(g);					
+						if(k.then) {
+							then.push(function(content, then, callback){
+								if(self.status === 'STOP') {
+									callback(null, []);
+								}else{
+									self.handle(content, then, (vl)=>{
+										let sleep = self.config.sleep();
+										setTimeout(() => {
+											callback(null, vl);
+										}, sleep);
+									}, (err) => {
+										console.error('Not match', err.pattern, err.temp);										
+										callback(err);
+									});
+								}
+							}.bind(null, g, k.then));
+						}
+					}
+					k.pattern.lastIndex = 0;
+					if(!m) {
+						if(!self.config.skipError){
+							let e = fcError(k);
+							if(e) return;
+						}
+					}
+					if(k.all) k.all(data);
+					if(then.length > 0){					
+						async.series(then, (err, rs) => {
+							if(err) return console.error('Error', err);
+							let result = new Set();
+							for(var k in rs){
+								if(rs[k] instanceof Array){
+									if(rs[k].length > 0){
+										for(let j in rs[k]){
+											result.add(rs[k][j]);
+										}
+									}
+								}else{
+									result.add(rs[k]);
+								}
+							}
+							if(fcDone) fcDone(Array.from(result));
+						});			
+					}else{
+						if(fcDone) fcDone(data);
+					}				
 				}else{
+					g = k.realContent;
+					if(k.each) g = k.each(g);
+					data = data.concat(g);
+					if(k.all) k.all(data);
+					if(k.then) self.handle(g, k.then, k.error ? k.error : (err) => { console.error('Not match', err); });					
 					if(fcDone) fcDone(data);
-				}				
-			}else{
-				g = k.realContent;
-				if(k.each) g = k.each(g);
-				data = data.concat(g);
-				if(k.all) k.all(data);
-				if(k.then) self.handle(g, k.then, k.error ? k.error : (err) => { console.error('Not match', err); });
-				else if(k.end) self.end = k.end;
-				if(fcDone) fcDone(data);
-			}
-		});
+				}
+			});
+		}
+		if(k.init){
+			k.init(handler);
+		}else{
+			handler();
+		}
 	}
 
 	handleContent(g, k, cb){
@@ -99,7 +124,7 @@ module.exports = class CrawlerBot {
 			let h = /^https?:\/\//.exec(k.realContent);		
 			if(h){
 				let url = k.realContent;
-				console.log('GET', url);
+				console.log('GET', url);				
 				return unirest('GET', url, self.config.headers, null, (res)=>{
 					if(self.config.status.indexOf(res.statusCode) === -1) {
 						console.error('Request error ', res.status, url);
@@ -114,12 +139,17 @@ module.exports = class CrawlerBot {
 		}
 	}
 
-	execute(fcFinished){
-		var self = this;
+	execute(fcFinished0){
+		let fcFinished = () => {
+			console.log('\n----------------------------- F-I-N-I-S-H-E-D -----------------------------\n');
+			fcFinished0();
+		}
+		let self = this;
+		self.status = 'RUNNING';
 		console.log('\n----------------------------- B-E-G-I-N-I-N-G -----------------------------\n');
 		self.handle(null, this.config.steps, function(rs){						
 			if(self.end) self.end(rs, fcFinished);
-			console.log('\n----------------------------- F-I-N-I-S-H-E-D -----------------------------\n');
+			else {console.log('There is not ending method')}			
 		}, (err) => {
 			console.log('\n----------------------------- E-R-R-O-R -----------------------------\n');			
 			console.error(err);

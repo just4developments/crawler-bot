@@ -15,7 +15,7 @@ class Model {
 
 	insert(tbl, data, fcDone, fcError){
 		data = (data instanceof Array) ? data : [data];
-		exports.connect((db) => {
+		this.connect((db) => {
 			db.collection(tbl).insertMany(data, function(err, r) {
 		    if(err) {
 		    	db.close();
@@ -25,9 +25,14 @@ class Model {
 		  });
 		});
 	}
-	select(tbl, where, fcDone, fcError){
-		exports.connect((db) => {
-			db.collection(tbl).find(where, function(err, r) {
+	select(tbl, wobj, fcDone, fcError){		
+		this.connect((db) => {						
+			let tbl0 = db.collection(tbl);
+			if(wobj.where) tbl0 = tbl0.find(wobj.where);
+			if(wobj.sort) tbl0 = tbl0.sort(wobj.sort);
+			if(wobj.limit) tbl0 = tbl0.limit(wobj.limit);
+			if(wobj.skip) tbl0 = tbl0.skip(wobj.skip);
+			tbl0.toArray(function(err, r) {
 		    if(err) {
 		    	db.close();
 		    	return fcError(err);
@@ -41,7 +46,7 @@ class Model {
 		for(let i in data){
 			data[i] = {_id: ObjectID(data[i])};
 		}
-		exports.connect((db) => {
+		this.connect((db) => {
 		  db.collection(tbl).deleteMany(data, function(err, r) {
 		    if(err) {
 		    	db.close();
@@ -50,6 +55,18 @@ class Model {
 		    fcDone(db);
 		  });
 		});
+	}
+	swap(rs){
+		for(var i=0, j=rs.length-1; i < j; i++, j--){
+			let tmp = rs[i].createat;
+			rs[i].createat = rs[j].createat;
+			rs[j].createat = tmp;
+
+			tmp = rs[i].updateat;
+			rs[i].updateat = rs[j].updateat;
+			rs[j].updateat = tmp;
+		}
+		return rs;
 	}
 	toUnsigned(alias, isRemoveSpecial){
     var str = alias;
@@ -75,14 +92,14 @@ class Model {
 		obj.keywords = [];
 		obj.viewcount = 0;
 		obj.utitle = exports.toUnsigned(obj.title);
-		for(var k of this.keywords){
-			if(k.pattern && k.pattern.length > 0){
-				let regex = new RegExp(k.pattern, 'igm');	
-				if(regex.test(obj.utitle)){
-					obj.keywords.push(k._id);
-				}
-			}
-		}		
+		// for(var k of this.keywords){
+		// 	if(k.pattern && k.pattern.length > 0){
+		// 		let regex = new RegExp(k.pattern, 'igm');	
+		// 		if(regex.test(obj.utitle)){
+		// 			obj.keywords.push(k._id);
+		// 		}
+		// 	}
+		// }		
 		return obj;
 	}
 	

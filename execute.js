@@ -8,7 +8,7 @@ if(scheduleConfig){
 }else{
 	let config;
 	try{
-		config = require('./config/' + process.argv[2]);	
+		config = require('./config/' + (process.argv[2] || 'chatvl.com'));	
 	}catch(e){
 		return console.error('Not found config file', e);
 	}
