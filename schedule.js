@@ -14,8 +14,8 @@ module.exports = (globalConfig, scheduleConfig) => {
 		console.log('|--S-C-E-N-E----[' + idx + ']--A-F-T-E-R--- ' + sleep + ' ms');				
 		setTimeout(() => {
 			scene.execute(() => {				
-				if(idx === scenes.length -1 && loop > 0) {
-					if(--loop === 0) return;
+				if(idx === scenes.length -1) {
+					if(loop > 0 && --loop === 0) return;
 					idx = 0;
 				}else{
 					idx++;
