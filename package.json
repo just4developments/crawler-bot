@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "async": "^2.0.0-rc.6",
+    "async-request": "^1.2.0",
     "mongodb": "^2.1.18",
     "unirest": "^0.5.0"
   },

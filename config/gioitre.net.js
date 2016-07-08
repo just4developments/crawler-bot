@@ -44,11 +44,11 @@ module.exports = {
 						if(rs.pageurl === lastPageurl) throw 'STOP';
 						rs.image = g[2];
 						rs = model.appendDefaultAttr(rs);
+						debugger;
 						return rs;
 					},
 					end: (rs, next) => {		
 						if(rs.length === 0) return next();
-						rs = model.swap(rs);
 						model.insert('clip', rs, (db) => { 
 							db.close();
 							next();

@@ -32,10 +32,10 @@ module.exports = class CrawlerBot {
 		let handler = () => {
 			self.handleContent(og, k, (k) =>{
 				let data = [];
+				let g;
 				if(k.pattern){			
 					let m;
-					let then = [];
-					let g;
+					let then = [];					
 					while(g = k.pattern.exec(k.realContent)){				
 						m = true;
 						try{
@@ -94,7 +94,7 @@ module.exports = class CrawlerBot {
 					}				
 				}else{
 					g = k.realContent;
-					if(k.each) g = k.each(g);
+					if(k.each) g = k.each(g, og);
 					data = data.concat(g);
 					if(k.all) k.all(data);
 					if(k.then) self.handle(g, k.then, k.error ? k.error : (err) => { console.error('Not match', err); });					
@@ -107,6 +107,16 @@ module.exports = class CrawlerBot {
 		}else{
 			handler();
 		}
+	}
+
+	mergeHeaders(pri, seconds){
+		debugger;
+		if(!pri) return seconds;
+		for(var i in seconds){
+			if(pri[i] === null) delete pri[i];
+			else if(pri[i] === undefined) pri[i] = seconds[i];
+		}
+		return pri;
 	}
 
 	handleContent(g, k, cb){
@@ -124,10 +134,11 @@ module.exports = class CrawlerBot {
 			let h = /^https?:\/\//.exec(k.realContent);		
 			if(h){
 				let url = k.realContent;
-				console.log('GET', url);				
-				return unirest('GET', url, self.config.headers, null, (res)=>{
+				console.log('GET', url);
+				let headers = self.mergeHeaders(k.headers, self.config.headers);
+				return unirest('GET', url, headers, null, (res)=>{
 					if(self.config.status.indexOf(res.statusCode) === -1) {
-						console.error('Request error ', res.status, url);
+						console.error('Request error ', res.statusCode, headers, url);
 					}
 					k.realContent = res.body;
 					cb(k);

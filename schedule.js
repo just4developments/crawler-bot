@@ -13,10 +13,8 @@ module.exports = (globalConfig, scheduleConfig) => {
 		else if(loop < 0) console.log('|--R-E-P-E-A-T---F-O-R-E-V-E-R');
 		console.log('|--S-C-E-N-E----[' + idx + ']--A-F-T-E-R--- ' + sleep + ' ms');				
 		setTimeout(() => {
-			debugger;
 			scene.execute(() => {				
 				if(idx === scenes.length -1 && loop > 0) {
-					debugger;
 					if(--loop === 0) return;
 					idx = 0;
 				}else{

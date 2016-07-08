@@ -3,8 +3,13 @@ let MongoClient = Mongo.MongoClient;
 let ObjectID = Mongo.ObjectID;
 let url = 'mongodb://localhost:27017/test';
 let unirest = require('unirest');
+var async = require('async');
 
 class Model {	
+
+	get googleapikey() {
+		return 'AIzaSyDZGfuJuAR3Kr_hLNlW4r-UfKKyDqI29tQ';
+	}
 	
 	connect(cb){
 		MongoClient.connect(url, function(err, db) {
@@ -13,7 +18,15 @@ class Model {
 		});
 	}
 
-	insert(tbl, data, fcDone, fcError){
+	getDuration(str) {
+		if(!str) return '';
+		if(str.includes('PT')){
+			str = str.substr(2);
+		}
+		return str;
+	}
+
+	insert(tbl, data, fcDone, fcError){		
 		data = (data instanceof Array) ? data : [data];
 		this.connect((db) => {
 			db.collection(tbl).insertMany(data, function(err, r) {
@@ -55,19 +68,7 @@ class Model {
 		    fcDone(db);
 		  });
 		});
-	}
-	swap(rs){
-		for(var i=0, j=rs.length-1; i < j; i++, j--){
-			let tmp = rs[i].createat;
-			rs[i].createat = rs[j].createat;
-			rs[j].createat = tmp;
-
-			tmp = rs[i].updateat;
-			rs[i].updateat = rs[j].updateat;
-			rs[j].updateat = tmp;
-		}
-		return rs;
-	}
+	}	
 	toUnsigned(alias, isRemoveSpecial){
     var str = alias;
     str= str.toLowerCase(); 
@@ -84,30 +85,30 @@ class Model {
     str= str.replace(/^\-+|\-+$/g,""); 
     //cắt bỏ ký tự - ở đầu và cuối chuỗi 
     return str;
-	}
-	appendDefaultAttr(obj){
+	}	
+	appendDefaultAttr(obj){		
 		obj.createat = new Date();
 		obj.updateat = new Date();		
 		obj.creator = "Admin";
 		obj.keywords = [];
 		obj.viewcount = 0;
-		obj.utitle = exports.toUnsigned(obj.title);
-		// for(var k of this.keywords){
-		// 	if(k.pattern && k.pattern.length > 0){
-		// 		let regex = new RegExp(k.pattern, 'igm');	
-		// 		if(regex.test(obj.utitle)){
-		// 			obj.keywords.push(k._id);
-		// 		}
-		// 	}
-		// }		
-		return obj;
+		obj.status = 1;
+		for(var k of global.keywords){
+			if(k.pattern && k.pattern.length > 0){
+				let regex = new RegExp(k.pattern, 'igm');	
+				if(regex.test(obj.utitle)){
+					obj.keywords.push(k._id);
+				}
+			}
+		}
+		return obj;	
 	}
 	
 	constructor(){
 		unirest('GET', 'http://localhost:8000/keywords', {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36'
 		}, null, (res)=>{
-			this.keywords = res.body;
+			global.keywords = res.body;
 		});
 	}
 
