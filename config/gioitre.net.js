@@ -43,8 +43,6 @@ module.exports = {
 						let rs = {title: g0.title, link: decrypt(g[1]), site: site, pageid: g0.id, pageurl: g0.link};
 						if(rs.pageurl === lastPageurl) throw 'STOP';
 						rs.image = g[2];
-						rs = model.appendDefaultAttr(rs);
-						debugger;
 						return rs;
 					},
 					end: (rs, next) => {		

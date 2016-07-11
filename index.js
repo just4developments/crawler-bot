@@ -57,8 +57,12 @@ module.exports = class CrawlerBot {
 											callback(null, vl);
 										}, sleep);
 									}, (err) => {
-										console.error('Not match', err.pattern, err.temp);										
-										callback(err);
+										try{
+											console.error('Not match', err.pattern, err.temp);										
+										}catch(e){
+											console.error('Error other', err);										
+										}
+										callback('Loi ' + err);
 									});
 								}
 							}.bind(null, g, k.then));
@@ -74,7 +78,12 @@ module.exports = class CrawlerBot {
 					if(k.all) k.all(data);
 					if(then.length > 0){					
 						async.series(then, (err, rs) => {
-							if(err) return console.error('Error', err);
+							if(err) {
+								if(!self.config.skipError){
+									let e = fcError(k);
+									if(e) return;
+								}
+							}
 							let result = new Set();
 							for(var k in rs){
 								if(rs[k] instanceof Array){
@@ -110,7 +119,6 @@ module.exports = class CrawlerBot {
 	}
 
 	mergeHeaders(pri, seconds){
-		debugger;
 		if(!pri) return seconds;
 		for(var i in seconds){
 			if(pri[i] === null) delete pri[i];

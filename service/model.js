@@ -103,6 +103,44 @@ class Model {
 		}
 		return obj;	
 	}
+
+	applyYoutube(rs, fcDone){
+		var self = this;
+		var ids = '';
+		for(var i=rs.length-1; i>=0; i--){
+			var u = rs[i];
+			if(!u) {
+				rs.splice(i, 1);
+				continue;
+			}
+			if(ids.length > 0) ids += ",";
+			ids += u.youtubeid;
+		}
+		var url = 'https://www.googleapis.com/youtube/v3/videos?id=' + ids + '&key=' + self.googleapikey + '&fields=items(snippet(title),contentDetails(duration))&part=snippet,contentDetails';
+		unirest('GET', url, {
+			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36'
+		}, null, (res)=>{
+			var k=0;
+			for(var i in rs){
+				if(!rs[i].youtubeid) continue;
+				try{
+					var item = res.body.items[k++];
+					if(!item) continue;
+					if(!rs[i].title || rs[i].title.length === 0) {
+						rs[i].title = item.snippet.title;
+						rs[i].utitle = self.toUnsigned(rs[i].title);
+					}else{
+						rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
+					}					
+					rs[i].duration = self.getDuration(item.contentDetails.duration);
+					rs[i] = self.appendDefaultAttr(rs[i]);
+				}catch(e){
+					console.error('applyYoutube', e);
+				}
+			}
+			fcDone(rs);
+		});
+	}
 	
 	constructor(){
 		unirest('GET', 'http://localhost:8000/keywords', {

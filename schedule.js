@@ -24,5 +24,7 @@ module.exports = (globalConfig, scheduleConfig) => {
 			});
 		}, sleep);
 	}	
-	scan(0, loop);
+	setTimeout(()=>{
+		scan(0, loop);
+	}, 2000);	
 }
