@@ -1,5 +1,5 @@
 let model = require('../service/model');
-let site = 'http://gioitre.net/';
+let site = 'http://haivn.com/';
 let lastPageurl;
 
 module.exports = {	
@@ -36,7 +36,7 @@ module.exports = {
 				},
 				pattern: /<iframe allowfullscreen="true" src="([^"]+)/igm,
 				each: (g, g0) => {
-					let rs = {title: g0.title, link: g[1], site: 'http://haivn.com/', pageid: g0.id, pageurl: g0.link, youtubeid: g[1].match(/\/embed\/([a-zA-Z0-9_-]+)/)[1], createat: new Date(), updateat: new Date()};					
+					let rs = {title: g0.title, link: g[1], site: site, pageid: g0.id, pageurl: g0.link, youtubeid: g[1].match(/\/embed\/([a-zA-Z0-9_-]+)/)[1], createat: new Date(), updateat: new Date()};					
 					rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;
 					return rs;
 				},
