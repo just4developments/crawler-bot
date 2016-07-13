@@ -1,7 +1,7 @@
 let Mongo = require('mongodb');
 let MongoClient = Mongo.MongoClient;
 let ObjectID = Mongo.ObjectID;
-let url = 'mongodb://localhost:27017/test';
+let url = 'mongodb://localhost:27017/clipv2';
 let unirest = require('unirest');
 var async = require('async');
 
