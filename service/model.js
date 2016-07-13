@@ -86,9 +86,7 @@ class Model {
     //cắt bỏ ký tự - ở đầu và cuối chuỗi 
     return str;
 	}	
-	appendDefaultAttr(obj){		
-		obj.createat = new Date();
-		obj.updateat = new Date();		
+	appendDefaultAttr(obj){
 		obj.creator = "Admin";
 		obj.keywords = [];
 		obj.viewcount = 0;
@@ -104,17 +102,35 @@ class Model {
 		return obj;	
 	}
 
+	removeUndefined(rs){
+		for(var i=rs.length-1; i>=0; i--){
+			if(rs[i] === undefined) {
+				rs.splice(i, 1);
+				continue;
+			}
+		}
+		return rs;
+	}
+
+	sortDate(rs){
+		for(var i =0, j=rs.length-1; i<j; i++, j--){
+			var tmp = rs[i].createat;
+			rs[i].createat = rs[j].createat;
+			rs[j].createat = tmp;
+
+			tmp = rs[i].updateat;
+			rs[i].updateat = rs[j].updateat;
+			rs[j].updateat = tmp;
+		}
+		return rs;
+	}
+
 	applyYoutube(rs, fcDone){
 		var self = this;
 		var ids = '';
 		for(var i=rs.length-1; i>=0; i--){
-			var u = rs[i];
-			if(!u) {
-				rs.splice(i, 1);
-				continue;
-			}
 			if(ids.length > 0) ids += ",";
-			ids += u.youtubeid;
+			ids += rs[i].youtubeid;
 		}
 		var url = 'https://www.googleapis.com/youtube/v3/videos?id=' + ids + '&key=' + self.googleapikey + '&fields=items(snippet(title),contentDetails(duration))&part=snippet,contentDetails';
 		unirest('GET', url, {

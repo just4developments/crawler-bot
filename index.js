@@ -30,6 +30,7 @@ module.exports = class CrawlerBot {
 	handle(og, k, fcDone, fcError){			
 		let self = this;
 		let handler = () => {
+			debugger;
 			self.handleContent(og, k, (k) =>{
 				let data = [];
 				let g;
@@ -42,6 +43,7 @@ module.exports = class CrawlerBot {
 							if(k.each) g = k.each(g, og);
 							if(g === undefined) continue;
 						}catch(e){
+							debugger;
 							self.status = 'STOP';
 							break;
 						}
@@ -62,7 +64,6 @@ module.exports = class CrawlerBot {
 										}catch(e){
 											console.error('Error other', err);										
 										}
-										callback('Loi ' + err);
 									});
 								}
 							}.bind(null, g, k.then));
@@ -79,6 +80,7 @@ module.exports = class CrawlerBot {
 					if(then.length > 0){					
 						async.series(then, (err, rs) => {
 							if(err) {
+								console.log('go in');
 								if(!self.config.skipError){
 									let e = fcError(k);
 									if(e) return;
@@ -89,11 +91,11 @@ module.exports = class CrawlerBot {
 								if(rs[k] instanceof Array){
 									if(rs[k].length > 0){
 										for(let j in rs[k]){
-											result.add(rs[k][j]);
+											if(rs[k][j] !== undefined) result.add(rs[k][j]);
 										}
 									}
 								}else{
-									result.add(rs[k]);
+									if(rs[k] !== undefined) result.add(rs[k]);
 								}
 							}
 							if(fcDone) fcDone(Array.from(result));

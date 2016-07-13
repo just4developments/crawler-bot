@@ -1,5 +1,5 @@
 module.exports = {	
-	scenes: ['./config/chatvl.com'],
+	scenes: ['./config/chatvl.com', './config/gioitre.net', './config/haivn.com'],
 	// scenes: ['./config/chatvl.com'],
 	loop: -1,
 	sleep: () => {
