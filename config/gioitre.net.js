@@ -49,6 +49,7 @@ module.exports = {
 					end: (rs, next) => {		
 						if(rs.length === 0) return next();
 						rs = model.sortDate(rs);
+						rs = model.appendDefaultAttr(rs);
 						model.insert('clip', rs, (db) => { 
 							db.close();
 							next();

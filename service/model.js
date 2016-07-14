@@ -87,15 +87,21 @@ class Model {
     return str;
 	}	
 	appendDefaultAttr(obj){
-		obj.creator = "Admin";
-		obj.keywords = [];
-		obj.viewcount = 0;
-		obj.status = 1;
-		for(var k of global.keywords){
-			if(k.pattern && k.pattern.length > 0){
-				let regex = new RegExp(k.pattern, 'igm');	
-				if(regex.test(obj.utitle)){
-					obj.keywords.push(k._id);
+		if(obj instanceof Array){
+			for(var i in obj){
+				obj[i] = appendDefaultAttr(obj[i]);
+			}
+		}else{
+			obj.creator = "Admin";
+			obj.keywords = [];
+			obj.viewcount = 0;
+			obj.status = 1;
+			for(var k of global.keywords){
+				if(k.pattern && k.pattern.length > 0){
+					let regex = new RegExp(k.pattern, 'igm');	
+					if(regex.test(obj.utitle)){
+						obj.keywords.push(k._id);
+					}
 				}
 			}
 		}
