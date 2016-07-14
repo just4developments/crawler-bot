@@ -9,7 +9,6 @@ module.exports = {
 	steps: {
 		init: (next) => {
 			model.select('clip', { where: { site: site }, sort: {createat: -1}, limit: 1 }, (rs, db) => {
-				db.close();
 				lastPageurl = rs.length > 0 ? rs[0].pageurl : null;
 				console.log(lastPageurl);
 				next();
@@ -45,7 +44,6 @@ module.exports = {
 					rs = model.sortDate(rs);
 					model.applyYoutube(rs, (rs) => {
 						model.insert('clip', rs, (db) => { 
-							db.close();
 							next();
 						}, (err) => { console.error(err); });
 					});							

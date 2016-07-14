@@ -12,10 +12,19 @@ class Model {
 	}
 	
 	connect(cb){
+		var self = this;
 		MongoClient.connect(url, function(err, db) {
 		  if(err) return console.error(err);
-		  cb(db);
+		  self.db = db;
 		});
+	}
+
+	disconnect(){
+		try{
+			if(this.db) this.db.close();
+		}catch(e){
+			console.log('dbclose', e);
+		}
 	}
 
 	getDuration(str) {
@@ -27,47 +36,41 @@ class Model {
 	}
 
 	insert(tbl, data, fcDone, fcError){		
+		var self = this;
 		data = (data instanceof Array) ? data : [data];
-		this.connect((db) => {
-			db.collection(tbl).insertMany(data, function(err, r) {
-		    if(err) {
-		    	db.close();
-		    	return fcError(err);
-		    }
-		    fcDone(db);
-		  });
-		});
+		this.db.collection(tbl).insertMany(data, function(err, r) {
+	    if(err) {
+	    	return fcError(err);
+	    }
+	    fcDone(self.db);
+	  });
 	}
 	select(tbl, wobj, fcDone, fcError){		
-		this.connect((db) => {						
-			let tbl0 = db.collection(tbl);
-			if(wobj.where) tbl0 = tbl0.find(wobj.where);
-			if(wobj.sort) tbl0 = tbl0.sort(wobj.sort);
-			if(wobj.limit) tbl0 = tbl0.limit(wobj.limit);
-			if(wobj.skip) tbl0 = tbl0.skip(wobj.skip);
-			tbl0.toArray(function(err, r) {
-		    if(err) {
-		    	db.close();
-		    	return fcError(err);
-		    }
-		    fcDone(r, db);
-		  });
-		});
+		var self = this;
+		let tbl0 = this.db.collection(tbl);
+		if(wobj.where) tbl0 = tbl0.find(wobj.where);
+		if(wobj.sort) tbl0 = tbl0.sort(wobj.sort);
+		if(wobj.limit) tbl0 = tbl0.limit(wobj.limit);
+		if(wobj.skip) tbl0 = tbl0.skip(wobj.skip);
+		tbl0.toArray(function(err, r) {
+	    if(err) {
+	    	return fcError(err);
+	    }
+	    fcDone(r, self.db);
+	  });
 	}
 	remove(tbl, id) {
+		var self = this;
 		data = (data instanceof Array) ? data : [data];
 		for(let i in data){
 			data[i] = {_id: ObjectID(data[i])};
 		}
-		this.connect((db) => {
-		  db.collection(tbl).deleteMany(data, function(err, r) {
-		    if(err) {
-		    	db.close();
-		    	return fcError(err);
-		    }
-		    fcDone(db);
-		  });
-		});
+	  this.db.collection(tbl).deleteMany(data, function(err, r) {
+	    if(err) {
+	    	return fcError(err);
+	    }
+	    fcDone(self.db);
+	  });
 	}	
 	toUnsigned(alias, isRemoveSpecial){
     var str = alias;
@@ -89,7 +92,7 @@ class Model {
 	appendDefaultAttr(obj){
 		if(obj instanceof Array){
 			for(var i in obj){
-				obj[i] = appendDefaultAttr(obj[i]);
+				obj[i] = this.appendDefaultAttr(obj[i]);
 			}
 		}else{
 			obj.creator = "Admin";
@@ -154,17 +157,18 @@ class Model {
 					}else{
 						rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
 					}					
-					rs[i].duration = self.getDuration(item.contentDetails.duration);
-					rs[i] = self.appendDefaultAttr(rs[i]);
+					rs[i].duration = self.getDuration(item.contentDetails.duration);					
 				}catch(e){
 					console.error('applyYoutube', e);
 				}
+				rs[i] = self.appendDefaultAttr(rs[i]);
 			}
 			fcDone(rs);
 		});
 	}
 	
 	constructor(){
+		this.connect();
 		unirest('GET', 'http://localhost:8000/keywords', {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36'
 		}, null, (res)=>{

@@ -1,4 +1,5 @@
 let CrawlerBot = require('./');	
+let model = require('./service/model');
 
 module.exports = (globalConfig, scheduleConfig) => {
 	let loop = scheduleConfig.loop;
@@ -16,7 +17,10 @@ module.exports = (globalConfig, scheduleConfig) => {
 			scene.execute((err) => {				
 				// console.log('aaaaaaaaaaaa', err);
 				if(idx === scenes.length -1) {
-					if(loop > 0 && --loop === 0) return;
+					if(loop > 0 && --loop === 0) {
+						model.disconnect();
+						return;
+					}
 					idx = 0;
 				}else{
 					idx++;
