@@ -3,7 +3,9 @@ let MongoClient = Mongo.MongoClient;
 let ObjectID = Mongo.ObjectID;
 let url = 'mongodb://localhost:27017/clipv2';
 let unirest = require('unirest');
-var async = require('async');
+let async = require('async');
+let HtmlEntities = require('html-entities').AllHtmlEntities;
+let htmlEntities = new HtmlEntities();
 
 class Model {	
 
@@ -12,7 +14,7 @@ class Model {
 	}
 	
 	connect(cb){
-		var self = this;
+		let self = this;
 		MongoClient.connect(url, function(err, db) {
 		  if(err) return console.error(err);
 		  self.db = db;
@@ -36,7 +38,7 @@ class Model {
 	}
 
 	insert(tbl, data, fcDone, fcError){		
-		var self = this;
+		let self = this;
 		data = (data instanceof Array) ? data : [data];
 		this.db.collection(tbl).insertMany(data, function(err, r) {
 	    if(err) {
@@ -46,7 +48,7 @@ class Model {
 	  });
 	}
 	select(tbl, wobj, fcDone, fcError){		
-		var self = this;
+		let self = this;
 		let tbl0 = this.db.collection(tbl);
 		if(wobj.where) tbl0 = tbl0.find(wobj.where);
 		if(wobj.sort) tbl0 = tbl0.sort(wobj.sort);
@@ -60,7 +62,7 @@ class Model {
 	  });
 	}
 	remove(tbl, id) {
-		var self = this;
+		let self = this;
 		data = (data instanceof Array) ? data : [data];
 		for(let i in data){
 			data[i] = {_id: ObjectID(data[i])};
@@ -73,7 +75,7 @@ class Model {
 	  });
 	}	
 	toUnsigned(alias, isRemoveSpecial){
-    var str = alias;
+    let str = alias;
     str= str.toLowerCase(); 
     str= str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ  |ặ|ẳ|ẵ/g,"a"); 
     str= str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e"); 
@@ -89,17 +91,18 @@ class Model {
     //cắt bỏ ký tự - ở đầu và cuối chuỗi 
     return str;
 	}	
-	appendDefaultAttr(obj){
+	appendDefaultAttr(obj, isYoutube){
 		if(obj instanceof Array){
-			for(var i in obj){
-				obj[i] = this.appendDefaultAttr(obj[i]);
+			for(let i in obj){
+				obj[i] = this.appendDefaultAttr(obj[i], isYoutube);
 			}
 		}else{
 			obj.creator = "Admin";
 			obj.keywords = [];
 			obj.viewcount = 0;
 			obj.status = 1;
-			for(var k of global.keywords){
+			if(!isYoutube) obj.title = htmlEntities.decode(obj.title);
+			for(let k of global.keywords){
 				if(k.pattern && k.pattern.length > 0){
 					let regex = new RegExp(k.pattern, 'igm');	
 					if(regex.test(obj.utitle)){
@@ -112,7 +115,7 @@ class Model {
 	}
 
 	removeUndefined(rs){
-		for(var i=rs.length-1; i>=0; i--){
+		for(let i=rs.length-1; i>=0; i--){
 			if(rs[i] === undefined) {
 				rs.splice(i, 1);
 				continue;
@@ -122,8 +125,8 @@ class Model {
 	}
 
 	sortDate(rs){
-		for(var i =0, j=rs.length-1; i<j; i++, j--){
-			var tmp = rs[i].createat;
+		for(let i =0, j=rs.length-1; i<j; i++, j--){
+			let tmp = rs[i].createat;
 			rs[i].createat = rs[j].createat;
 			rs[j].createat = tmp;
 
@@ -135,33 +138,34 @@ class Model {
 	}
 
 	applyYoutube(rs, fcDone){
-		var self = this;
-		var ids = '';
-		for(var i=rs.length-1; i>=0; i--){
+		let self = this;
+		let ids = '';
+		for(let i=rs.length-1; i>=0; i--){
 			if(ids.length > 0) ids += ",";
 			ids += rs[i].youtubeid;
 		}
-		var url = 'https://www.googleapis.com/youtube/v3/videos?id=' + ids + '&key=' + self.googleapikey + '&fields=items(snippet(title),contentDetails(duration))&part=snippet,contentDetails';
+		let url = 'https://www.googleapis.com/youtube/v3/videos?id=' + ids + '&key=' + self.googleapikey + '&fields=items(snippet(title),contentDetails(duration))&part=snippet,contentDetails';
 		unirest('GET', url, {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36'
 		}, null, (res)=>{
-			var k=0;
-			for(var i in rs){
+			let k=0;
+			for(let i in rs){
 				if(!rs[i].youtubeid) continue;
 				try{
-					var item = res.body.items[k++];
+					let item = res.body.items[k++];
 					if(!item) continue;
 					if(!rs[i].title || rs[i].title.length === 0) {
-						rs[i].title = item.snippet.title;
+						rs[i].title = htmlEntities.decode(item.snippet.title);
 						rs[i].utitle = self.toUnsigned(rs[i].title);
 					}else{
+						rs[i].title = htmlEntities.decode(rs[i].title);
 						rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
 					}					
 					rs[i].duration = self.getDuration(item.contentDetails.duration);					
 				}catch(e){
 					console.error('applyYoutube', e);
 				}
-				rs[i] = self.appendDefaultAttr(rs[i]);
+				rs[i] = self.appendDefaultAttr(rs[i], true);
 			}
 			fcDone(rs);
 		});
