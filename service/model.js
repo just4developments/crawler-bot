@@ -50,7 +50,10 @@ class Model {
 	select(tbl, wobj, fcDone, fcError){		
 		let self = this;
 		let tbl0 = this.db.collection(tbl);
-		if(wobj.where) tbl0 = tbl0.find(wobj.where);
+
+		if(!wobj.where) wobj.where = {};
+		if(wobj.fields) tbl0 = tbl0.find(wobj.where, wobj.fields);
+		else tbl0 = tbl0.find(wobj.where);
 		if(wobj.sort) tbl0 = tbl0.sort(wobj.sort);
 		if(wobj.limit) tbl0 = tbl0.limit(wobj.limit);
 		if(wobj.skip) tbl0 = tbl0.skip(wobj.skip);
@@ -140,7 +143,8 @@ class Model {
 	applyYoutube(rs, fcDone){
 		let self = this;
 		let ids = '';
-		for(let i=rs.length-1; i>=0; i--){
+		for(let i in rs){
+			if(!rs[i].youtubeid) continue;
 			if(ids.length > 0) ids += ",";
 			ids += rs[i].youtubeid;
 		}
@@ -150,20 +154,21 @@ class Model {
 		}, null, (res)=>{
 			let k=0;
 			for(let i in rs){
-				if(!rs[i].youtubeid) continue;
-				try{
-					let item = res.body.items[k++];
-					if(!item) continue;
-					if(!rs[i].title || rs[i].title.length === 0) {
-						rs[i].title = htmlEntities.decode(item.snippet.title);
-						rs[i].utitle = self.toUnsigned(rs[i].title);
-					}else{
-						rs[i].title = htmlEntities.decode(rs[i].title);
-						rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
-					}					
-					rs[i].duration = self.getDuration(item.contentDetails.duration);					
-				}catch(e){
-					console.error('applyYoutube', e);
+				if(rs[i].youtubeid){
+					try{
+						let item = res.body.items[k++];
+						if(!item) continue;
+						if(!rs[i].title || rs[i].title.length === 0) {
+							rs[i].title = htmlEntities.decode(item.snippet.title);
+							rs[i].utitle = self.toUnsigned(rs[i].title);
+						}else{
+							rs[i].title = htmlEntities.decode(rs[i].title);
+							rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
+						}					
+						rs[i].duration = self.getDuration(item.contentDetails.duration);					
+					}catch(e){
+						console.error('applyYoutube', e);
+					}
 				}
 				rs[i] = self.appendDefaultAttr(rs[i], true);
 			}

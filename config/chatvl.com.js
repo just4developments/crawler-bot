@@ -1,6 +1,7 @@
 let model = require('../service/model');
 let site = 'http://chatvl.tv/';
 let lastPageurl;
+let youtubeids = [];
 
 module.exports = {	
 	headers: {
@@ -10,8 +11,11 @@ module.exports = {
 		init: (next) => {
 			model.select('clip', { where: { site: site }, sort: {createat: -1}, limit: 1 }, (rs, db) => {
 				lastPageurl = rs.length > 0 ? rs[0].pageurl : null;
-				console.log('lastPage', lastPageurl);
-				next();
+				console.log(site, lastPageurl);
+				model.select('clip', { sort: {updateat: -1}, limit: 500, fields: { _id: 0, youtubeid: 1 }}, (rs, db) => {
+					youtubeids = rs.map((e)=>{return e.youtubeid;});
+					next();
+				});
 			}, (err) => { console.error('Init method', err); })			
 		},
 		content: '1',
@@ -40,7 +44,8 @@ module.exports = {
 					pattern: /<iframe id="video-iframe" class="video-iframe" width="727" height="410" src="([^"]+)"/igm,
 					each: (g, g0) => {			
 						let rs = {title: g0.title, link: g[1].replace('chatvl.tv', 'www.youtube.com'), site: site, pageid: g0.id, pageurl: g0.link, youtubeid: g[1].substr(g[1].lastIndexOf('/')+1), createat: new Date(), updateat: new Date()};
-						rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;						
+						rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;
+						if(youtubeids.indexOf(rs.youtubeid)) return undefined;
 						return rs;
 					},
 					end: (rs, next) => {

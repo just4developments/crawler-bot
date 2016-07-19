@@ -10,8 +10,11 @@ module.exports = {
 		init: (next) => {
 			model.select('clip', { where: { site: site }, sort: {createat: -1}, limit: 1 }, (rs, db) => {
 				lastPageurl = rs.length > 0 ? rs[0].pageurl : null;
-				console.log(lastPageurl);
-				next();
+				console.log(site, lastPageurl);
+				model.select('clip', { sort: {updateat: -1}, limit: 500, fields: { _id: 0, youtubeid: 1 }}, (rs, db) => {
+					youtubeids = rs.map((e)=>{return e.youtubeid;});
+					next();
+				});
 			}, (err) => { console.error('Init method', err); })			
 		},
 		content: 'http://haivn.com/video',
@@ -37,6 +40,7 @@ module.exports = {
 				each: (g, g0) => {
 					let rs = {title: g0.title, link: g[1], site: site, pageid: g0.id, pageurl: g0.link, youtubeid: g[1].match(/\/embed\/([a-zA-Z0-9_-]+)/)[1], createat: new Date(), updateat: new Date()};					
 					rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;
+					if(youtubeids.indexOf(rs.youtubeid)) return undefined;
 					return rs;
 				},
 				end: (rs, next) => {
