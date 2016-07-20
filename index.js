@@ -80,7 +80,6 @@ module.exports = class CrawlerBot {
 					if(then.length > 0){					
 						async.series(then, (err, rs) => {
 							if(err) {
-								console.log('go in');
 								if(!self.config.skipError){
 									let e = fcError(k);
 									if(e) return;

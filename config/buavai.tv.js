@@ -1,12 +1,12 @@
 let model = require('../service/model');
-let site = 'http://haivn.com/';
+let site = 'https://buavai.tv/';
 let lastPageurl;
 let videoids = [];
 
 module.exports = {	
 	headers: {
-		'Host': 'haivn.com'
-	},	
+		'Host': 'buavai.tv'
+	},
 	steps: {
 		init: (next) => {
 			model.select('clip', { where: { site: site }, sort: {createat: -1}, limit: 1 }, (rs, db) => {
@@ -18,28 +18,26 @@ module.exports = {
 				});
 			}, (err) => { console.error('Init method', err); })			
 		},
-		content: 'http://haivn.com/video',
-		pattern: /<li id="video-key-(\d+)" class="col-xs-6 col-md-3 video-item-detail">([^]*?)<\/li>/igm,
+		content: '1',
+		pattern: /(\d+)/gim,
 		each: (g) => {
-			return {id: g[1], content: g[2]};
+			return 'https://buavai.tv/?page=' + g[1];
 		},
 		then: {
-			content: (e) => {
-				return e.content;
-			},
-			pattern: /<a href="([^"]+)">[^<]*<span [^>]+>([^<]+)/igm,
+			content: '$',
+			pattern: /<div class="img-wrap">[^<]*<a target="_blank" href="([^"]+)" title="([^"]+)" hreflang="vi"/igm,			
 			each: (g, g0) => {
-				var obj = {title: g[2], link: "http://haivn.com" + g[1], id: g0.id};
-				if(obj.link === lastPageurl) throw 'STOP';
+				var obj = { title: g[2], pageurl: g[1], id: g[1].substring(g[1].lastIndexOf('clip')+1, g[1].lastIndexOf('.'))};
+				if(obj.pageurl === lastPageurl) throw 'STOP';
 				return obj;
 			},
 			then: {
 				content: (e) => {
-					return e.link;
+					return e.pageurl;
 				},
-				pattern: /<iframe allowfullscreen="true" src="([^"]+)/igm,
+				pattern: /<iframe id="video-iframe" class="video-iframe" width="727" height="410" src="([^"]+)"/igm,
 				each: (g, g0) => {
-					let rs = {title: g0.title, link: g[1], site: site, pageid: g0.id, pageurl: g0.link, youtubeid: g[1].match(/\/embed\/([a-zA-Z0-9_-]+)/)[1], createat: new Date(), updateat: new Date()};					
+					let rs = {title: g0.title, link: g[1], site: site, pageid: g0.id, pageurl: g0.pageurl, youtubeid: g[1].substr(g[1].lastIndexOf('/')+1), createat: new Date(), updateat: new Date()};
 					rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;
 					if(videoids.indexOf(rs.youtubeid) !== -1) return undefined;
 					return rs;
@@ -50,11 +48,10 @@ module.exports = {
 					model.applyYoutube(rs, (rs) => {
 						model.insert('clip', rs, (db) => { 
 							next();
-						}, (err) => { console.error(err); });
-					});							
+						}, (err) => { console.error('page', err, rs); });
+					});
 				}
 			}
 		}
-	}
+	}	
 }
-

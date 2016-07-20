@@ -49,12 +49,12 @@ module.exports = {
 							if(!m) return undefined;
 							g0.youtubeid = m[1];
 							g0.link = `http://www.youtube.com/embed/${g0.youtubeid}`;
-							if(videoids.indexOf(`youtube:${g0.youtubeid}`) != -1) return undefined;
+							if(videoids.indexOf(`youtube:${g0.youtubeid}`) !== -1) return undefined;
 						}else if(g0.link.includes('facebook')){
 							let m = g0.link.match(/v=([^&]+)/);
 							if(!m) return undefined;
 							g0.facebookid = m[1];
-							if(videoids.indexOf(`facebook:${g0.facebookid}`) != -1) return undefined;
+							if(videoids.indexOf(`facebook:${g0.facebookid}`) !== -1) return undefined;
 						}
 						return g0;
 					},

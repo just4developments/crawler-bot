@@ -1,6 +1,6 @@
 module.exports = {	
-	//scenes: ['./config/chatvl.com', './config/gioitre.net', './config/haivn.com'],
-	scenes: ['./config/vui.us'],
+	// scenes: ['./config/buavai.tv', './config/vui.us', './config/chatvl.com', './config/gioitre.net', './config/haivn.com'],
+	scenes: ['./config/buavai.tv'],
 	loop: -1,
 	sleep: {
 		each: () => {
