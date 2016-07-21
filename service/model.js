@@ -87,11 +87,11 @@ class Model {
     str= str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u"); 
     str= str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
     str= str.replace(/đ/g,"d"); 
-    if(isRemoveSpecial) str= str.replace(/!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'| |\"|\&|\#|\[|\]|~|$|_/g,"-");
-    /* tìm và thay thế các kí tự đặc biệt trong chuỗi sang kí tự - */
-    str= str.replace(/-+-/g,"-"); //thay thế 2- thành 1-
-    str= str.replace(/^\-+|\-+$/g,""); 
-    //cắt bỏ ký tự - ở đầu và cuối chuỗi 
+    if(isRemoveSpecial) {
+    	str= str.replace(/!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'| |\"|\&|\#|\[|\]|~|$|_|\|/g,"-");
+	    str= str.replace(/-+-/g,"-");
+	    str= str.replace(/^\-+|\-+$/g,""); 
+	  }
     return str;
 	}	
 	appendDefaultAttr(obj, isYoutube){
@@ -100,6 +100,7 @@ class Model {
 				obj[i] = this.appendDefaultAttr(obj[i], isYoutube);
 			}
 		}else{
+			obj.title0 = this.toUnsigned(obj.title, true);
 			obj.creator = "Admin";
 			obj.keywords = [];
 			obj.viewcount = 0;
@@ -164,7 +165,7 @@ class Model {
 						}else{
 							rs[i].title = htmlEntities.decode(rs[i].title);
 							rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
-						}					
+						}
 						rs[i].duration = self.getDuration(item.contentDetails.duration);					
 					}catch(e){
 						console.error('applyYoutube', e);
