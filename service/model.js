@@ -109,7 +109,7 @@ class Model {
 			for(let k of global.keywords){
 				if(k.pattern && k.pattern.length > 0){
 					let regex = new RegExp(k.pattern, 'igm');	
-					if(regex.test(obj.utitle)){
+					if(regex.test(obj.title) || regex.test(obj.utitle)){
 						obj.keywords.push(k._id);
 					}
 				}
