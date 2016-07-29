@@ -18,7 +18,7 @@ module.exports = {
 				});
 			}, (err) => { console.error('Init method', err); })			
 		},
-		content: '1',
+		content: '1 2',
 		pattern: /(\d+)/gim,
 		each: (g) => {
 			return 'http://chatvl.tv/video/' + g[1];
