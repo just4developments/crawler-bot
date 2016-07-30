@@ -42,6 +42,7 @@ module.exports = {
 					let rs = {title: g0.title, link: g[1], site: site, pageid: g0.id, pageurl: g0.link, youtubeid: g[1].match(/\/embed\/([a-zA-Z0-9_-]+)/)[1], createat: new Date(), updateat: new Date()};					
 					rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;
 					if(videoids.indexOf(rs.youtubeid) !== -1) return undefined;
+					videoids.push(rs.youtubeid);
 					return rs;
 				},
 				end: (rs, next) => {

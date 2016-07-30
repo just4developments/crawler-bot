@@ -46,6 +46,7 @@ module.exports = {
 						let rs = {title: g0.title, link: g[1].replace('chatvl.tv', 'www.youtube.com'), site: site, pageid: g0.id, pageurl: g0.link, youtubeid: g[1].substr(g[1].lastIndexOf('/')+1), createat: new Date(), updateat: new Date()};
 						rs.image = `http://i.ytimg.com/vi/${rs.youtubeid}/0.jpg`;
 						if(videoids.indexOf(rs.youtubeid) !== -1) return undefined;
+						videoids.push(rs.youtubeid);
 						return rs;
 					},
 					end: (rs, next) => {
