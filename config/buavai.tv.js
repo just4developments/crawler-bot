@@ -18,7 +18,7 @@ module.exports = {
 				});
 			}, (err) => { console.error('Init method', err); })			
 		},
-		content: '1 2',
+		content: '1 2 3',
 		pattern: /(\d+)/gim,
 		each: (g) => {
 			return 'https://buavai.tv/?page=' + g[1];
