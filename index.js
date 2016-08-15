@@ -143,7 +143,7 @@ module.exports = class CrawlerBot {
 			let h = /^https?:\/\//.exec(k.realContent);		
 			if(h){
 				let url = k.realContent;
-				console.log('GET', url);
+				console.log(new Date(), 'GET', url);
 				let headers = self.mergeHeaders(k.headers, self.config.headers);
 				return unirest('GET', url, headers, null, (res)=>{
 					if(self.config.status.indexOf(res.statusCode) === -1) {
@@ -161,17 +161,17 @@ module.exports = class CrawlerBot {
 
 	execute(fcFinished0){
 		let fcFinished = () => {
-			console.log('\n----------------------------- F-I-N-I-S-H-E-D -----------------------------\n');
+			console.log('\n', new Date(), '----------------------------- F-I-N-I-S-H-E-D -----------------------------\n');
 			fcFinished0();
 		}
 		let self = this;
 		self.status = 'RUNNING';
-		console.log('\n----------------------------- B-E-G-I-N-I-N-G -----------------------------\n');
+		console.log('\n', new Date(), '----------------------------- B-E-G-I-N-I-N-G -----------------------------\n');
 		self.handle(null, this.config.steps, function(rs){						
 			if(self.end) self.end(rs, fcFinished);
 			else {console.log('There is not ending method')}			
 		}, (err) => {
-			console.log('\n----------------------------- E-R-R-O-R -----------------------------\n');			
+			console.log('\n', new Date(), '----------------------------- E-R-R-O-R -----------------------------\n');			
 			console.error(err);
 			if(fcFinished) fcFinished(err);
 		});

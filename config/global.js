@@ -7,7 +7,7 @@ module.exports = {
 		let getRandomArbitrary = (min, max) => {
 	    return Math.random() * (max - min) + min;
 		};
-		return getRandomArbitrary(5, 100) * 10;
+		return getRandomArbitrary(80, 200) * 10;
 	},
 	status: [200]
 }

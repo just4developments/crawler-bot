@@ -9,9 +9,9 @@ module.exports = (globalConfig, scheduleConfig) => {
 	}	
 	let scan = (idx, loop, sleep) => {		
 		let scene = scenes[idx];
-		if(loop > 0) console.log('|--R-E-P-E-A-T--[' + loop + ']');
-		else if(loop < 0) console.log('|--R-E-P-E-A-T---F-O-R-E-V-E-R');
-		console.log('|--S-C-E-N-E----[' + idx + ']--A-F-T-E-R--- ' + sleep + ' ms');				
+		if(loop > 0) console.log(new Date(), '|--R-E-P-E-A-T--[' + loop + ']');
+		else if(loop < 0) console.log(new Date(), '|--R-E-P-E-A-T---F-O-R-E-V-E-R');
+		console.log(new Date(), '|--S-C-E-N-E----[' + idx + ']--A-F-T-E-R--- ' + sleep + ' ms');				
 		setTimeout(() => {
 			scene.execute((err) => {				
 				let sleep = 0;
