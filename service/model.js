@@ -88,7 +88,7 @@ class Model {
     str= str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
     str= str.replace(/đ/g,"d"); 
     if(isRemoveSpecial) {
-    	str= str.replace(/!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'| |\"|\&|\#|\[|\]|~|$|_|\|/g,"-");
+    	str= str.replace(/!|@|%|\\|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'| |\"|\&|\#|\[|\]|~|$|_|\|/g,"-");
 	    str= str.replace(/-+-/g,"-");
 	    str= str.replace(/^\-+|\-+$/g,""); 
 	  }
@@ -100,12 +100,12 @@ class Model {
 				obj[i] = this.appendDefaultAttr(obj[i], isYoutube);
 			}
 		}else{
+			if(!isYoutube) obj.title = htmlEntities.decode(obj.title);
 			obj.title0 = this.toUnsigned(obj.title, true);
 			obj.creator = "Admin";
 			obj.keywords = [];
 			obj.viewcount = 0;
 			obj.status = 1;
-			if(!isYoutube) obj.title = htmlEntities.decode(obj.title);
 			for(let k of global.keywords){
 				if(k.pattern && k.pattern.length > 0){
 					let regex = new RegExp(k.pattern, 'igm');	
@@ -161,10 +161,10 @@ class Model {
 						if(!item) continue;
 						if(!rs[i].title || rs[i].title.length === 0) {
 							rs[i].title = htmlEntities.decode(item.snippet.title);
-							rs[i].utitle = self.toUnsigned(rs[i].title);
+							rs[i].utitle = self.toUnsigned(rs[i].title, true);
 						}else{
 							rs[i].title = htmlEntities.decode(rs[i].title);
-							rs[i].utitle = self.toUnsigned(rs[i].title) + "<|>" + self.toUnsigned(item.snippet.title);
+							rs[i].utitle = self.toUnsigned(rs[i].title, true) + "<|>" + self.toUnsigned(item.snippet.title, true);
 						}
 						rs[i].duration = self.getDuration(item.contentDetails.duration);					
 					}catch(e){
